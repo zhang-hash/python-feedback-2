@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python函数学习反馈收集</title>
+    <title>Python函数学习反馈</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
     <style>
@@ -23,75 +23,38 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
         
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        /* 教师专用区域 - 默认隐藏 */
+        .teacher-section {
+            display: none;
         }
         
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .card {
+        /* 学生界面 */
+        .student-card {
             background: white;
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .student-header {
+            text-align: center;
             margin-bottom: 25px;
         }
         
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 5px solid #28a745;
+        .student-header h1 {
+            font-size: 2rem;
+            color: #1a2a6c;
+            margin-bottom: 10px;
         }
         
-        .qrcode-section {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        
-        .qrcode-container {
-            display: inline-block;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin: 15px 0;
-        }
-        
-        #qrcode {
-            width: 200px;
-            height: 200px;
-            display: inline-block;
-            border: 1px solid #ddd;
-        }
-        
-        .share-link {
-            word-break: break-all;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            border: 1px dashed #1a2a6c;
+        .student-header p {
+            color: #666;
+            font-size: 1.1rem;
         }
         
         .form-section {
@@ -109,13 +72,14 @@
             margin-bottom: 8px;
             font-weight: bold;
             color: #1a2a6c;
+            font-size: 1.1rem;
         }
         
         input, textarea {
             width: 100%;
-            padding: 12px 15px;
+            padding: 15px;
             border: 2px solid #ddd;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s;
         }
@@ -126,38 +90,33 @@
         }
         
         textarea {
-            min-height: 100px;
+            min-height: 120px;
             resize: vertical;
         }
         
-        button {
-            padding: 12px 25px;
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
             background: linear-gradient(to right, #1a2a6c, #b21f1f);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.2rem;
             transition: all 0.3s ease;
-            margin-right: 10px;
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
         
-        button:hover {
+        .submit-btn:hover {
             background: linear-gradient(to right, #b21f1f, #fdbb2d);
-            transform: scale(1.05);
+            transform: translateY(-2px);
         }
         
-        /* 词云样式 */
+        /* 词云区域 */
         .wordcloud-section {
-            display: none; /* 默认隐藏 */
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
+            display: none;
             margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
         }
         
         .wordcloud-container {
@@ -166,6 +125,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         
         .wordcloud-title {
@@ -183,127 +143,56 @@
             background: white;
         }
         
-        .instructions {
-            background: #e3f2fd;
+        /* 成功消息 */
+        .success-message {
+            background: #d4edda;
+            color: #155724;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border-left: 5px solid #2196f3;
+            border-left: 5px solid #28a745;
+            text-align: center;
         }
         
-        .instructions h3 {
-            color: #1a2a6c;
-            margin-bottom: 10px;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-        }
-        
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-            flex-wrap: wrap;
-        }
-        
-        .tab-button {
-            padding: 10px 20px;
-            background: #f1f1f1;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px 5px 0 0;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-        
-        .tab-button.active {
-            background: #1a2a6c;
+        /* 教师切换按钮 */
+        .teacher-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #6c757d;
             color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .view-wordcloud-btn {
-            background: #28a745;
-            margin-top: 20px;
-        }
-        
-        .view-wordcloud-btn:hover {
-            background: #218838;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            z-index: 1000;
         }
         
         @media (max-width: 768px) {
-            #qrcode {
-                width: 150px;
-                height: 150px;
+            .container {
+                padding: 10px;
             }
             
-            .wordcloud-section {
-                grid-template-columns: 1fr;
+            .student-card {
+                padding: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Python函数学习反馈收集</h1>
-            <p class="subtitle">扫描二维码参与反馈，生成可视化词云</p>
-        </header>
-        
-        <div class="card">
-            <div class="success-message">
-                <h3>✅ GitHub Pages部署成功</h3>
-                <p>现在可以通过二维码或链接分享给学生了！提交反馈后可以查看词云图。</p>
-            </div>
-            
-            <!-- 二维码区域 -->
-            <div class="qrcode-section">
-                <h2>📱 手机扫描二维码参与</h2>
-                <div class="qrcode-container">
-                    <div id="qrcode"></div>
-                </div>
-                <p>使用微信、支付宝或手机相机扫描二维码</p>
-                
-                <div class="share-link">
-                    <strong>访问链接：</strong><br>
-                    <span id="pageUrl">https://zhang-hash.github.io/python-feedback-2/</span>
-                    <button onclick="copyUrl()" style="margin-left: 10px;">复制链接</button>
-                    <button onclick="refreshQRCode()" style="margin-left: 5px;">刷新二维码</button>
-                </div>
-            </div>
-            
-            <div class="instructions">
-                <h3>使用说明</h3>
-                <ul>
-                    <li>使用手机扫描上方二维码，或点击上方链接</li>
-                    <li>回答三个关于Python函数的问题</li>
-                    <li>您的回答将用于生成词云，展示全班学习情况</li>
-                    <li>提交反馈后点击"查看词云图"按钮</li>
-                </ul>
-            </div>
+    <!-- 教师切换按钮 -->
+    <button class="teacher-toggle" onclick="toggleTeacherView()">教师视图</button>
 
-            <!-- 标签页按钮 -->
-            <div class="tab-buttons">
-                <button class="tab-button active" onclick="openTab('form-tab')">填写反馈</button>
-                <button class="tab-button" onclick="openTab('wordcloud-tab')">查看词云</button>
-            </div>
+    <!-- 学生界面（默认显示） -->
+    <div id="studentView">
+        <div class="container">
+            <div class="student-card">
+                <div class="student-header">
+                    <h1>Python函数学习反馈</h1>
+                    <p>请回答以下三个问题，帮助我们改进教学</p>
+                </div>
 
-            <!-- 反馈表单标签页 -->
-            <div id="form-tab" class="tab-content active">
-                <h2>反馈表单</h2>
                 <form id="feedbackForm" class="form-section">
                     <div class="form-group">
                         <label for="studentName">您的姓名（可选）:</label>
@@ -311,36 +200,32 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="question1">问题一：在前面的学习中，我们遇到了哪些函数？说出三个即可。</label>
+                        <label for="question1">1. 我们遇到了哪些函数？说出三个即可。</label>
                         <textarea id="question1" placeholder="例如：print(), len(), input()..." required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="question2">问题二：他们的功能分别是什么？</label>
+                        <label for="question2">2. 他们的功能分别是什么？</label>
                         <textarea id="question2" placeholder="例如：print()用于输出信息，len()用于获取长度..." required></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="question3">问题三：函数功能是如何实现的？</label>
+                        <label for="question3">3. 函数功能是如何实现的？</label>
                         <textarea id="question3" placeholder="例如：通过函数名和参数调用，执行预定义的操作..." required></textarea>
                     </div>
                     
-                    <button type="submit">提交反馈</button>
-                    <button type="button" onclick="clearForm()">清空表单</button>
-                    
-                    <!-- 查看词云按钮 -->
-                    <button type="button" class="view-wordcloud-btn" onclick="openTab('wordcloud-tab'); updateAllWordClouds();">
-                        查看词云图
-                    </button>
+                    <button type="submit" class="submit-btn">提交反馈</button>
                 </form>
             </div>
 
-            <!-- 词云标签页 -->
-            <div id="wordcloud-tab" class="tab-content">
-                <h2>📊 词云展示</h2>
-                <p>以下是根据所有学生回答生成的词云图（词的大小表示出现频率）：</p>
-                
-                <div class="wordcloud-section" id="wordcloudSection">
+            <!-- 提交后显示词云 -->
+            <div id="wordcloudSection" class="wordcloud-section">
+                <div class="student-card">
+                    <div class="student-header">
+                        <h2>📊 全班反馈词云</h2>
+                        <p>根据同学们的回答生成</p>
+                    </div>
+                    
                     <div class="wordcloud-container">
                         <div class="wordcloud-title">遇到的函数</div>
                         <canvas id="wordcloud1" class="wordcloud-canvas"></canvas>
@@ -355,22 +240,76 @@
                         <div class="wordcloud-title">实现方式</div>
                         <canvas id="wordcloud3" class="wordcloud-canvas"></canvas>
                     </div>
+                    
+                    <button class="submit-btn" onclick="showFormAgain()" style="background: #6c757d; margin-top: 20px;">
+                        再次提交反馈
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教师界面（默认隐藏） -->
+    <div id="teacherView" class="teacher-section">
+        <div class="container">
+            <div class="student-card">
+                <div class="student-header">
+                    <h1>Python函数学习反馈收集 - 教师视图</h1>
+                    <p>扫描二维码分享给学生</p>
                 </div>
                 
-                <div style="text-align: center; margin-top: 20px;">
-                    <button onclick="updateAllWordClouds()">刷新词云</button>
-                    <button onclick="addSampleData()">添加示例数据</button>
-                    <button onclick="clearAllData()" style="background: #dc3545;">清空所有数据</button>
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px;">
+                    <div id="qrcode" style="display: inline-block; margin: 15px 0;"></div>
+                    <p>学生扫描此二维码参与反馈</p>
+                    <div style="word-break: break-all; background: white; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px dashed #1a2a6c;">
+                        <strong>访问链接：</strong><br>
+                        <span id="pageUrl">https://zhang-hash.github.io/python-feedback-2/</span>
+                    </div>
+                    <button onclick="copyUrl()" style="padding: 10px 20px; background: #1a2a6c; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                        复制链接
+                    </button>
+                    <button onclick="addSampleData()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                        添加示例数据
+                    </button>
+                    <button onclick="clearAllData()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                        清空数据
+                    </button>
+                </div>
+                
+                <div id="teacherWordcloudSection">
+                    <!-- 教师词云显示区域 -->
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 生成二维码函数
+        // 视图切换
+        function toggleTeacherView() {
+            const studentView = document.getElementById('studentView');
+            const teacherView = document.getElementById('teacherView');
+            const toggleBtn = document.querySelector('.teacher-toggle');
+            
+            if (teacherView.style.display === 'block') {
+                // 切换到学生视图
+                studentView.style.display = 'block';
+                teacherView.style.display = 'none';
+                toggleBtn.textContent = '教师视图';
+                toggleBtn.style.background = '#6c757d';
+            } else {
+                // 切换到教师视图
+                studentView.style.display = 'none';
+                teacherView.style.display = 'block';
+                toggleBtn.textContent = '学生视图';
+                toggleBtn.style.background = '#1a2a6c';
+                generateQRCode();
+                updateTeacherWordClouds();
+            }
+        }
+
+        // 生成二维码（教师视图）
         function generateQRCode() {
             const currentUrl = window.location.href;
-            console.log('当前URL:', currentUrl);
             document.getElementById('pageUrl').textContent = currentUrl;
             
             try {
@@ -382,71 +321,25 @@
                 
                 const qrImage = qr.createImgTag(4, 0);
                 document.getElementById('qrcode').innerHTML = qrImage;
-                
-                console.log('二维码生成成功！');
-                
             } catch (error) {
-                console.error('二维码生成失败:', error);
-                showQRCodeFallback(currentUrl);
+                document.getElementById('qrcode').innerHTML = `
+                    <div style="text-align:center; padding:20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
+                        <strong>请访问：</strong><br>
+                        <small>${currentUrl}</small>
+                    </div>
+                `;
             }
-        }
-
-        function showQRCodeFallback(url) {
-            document.getElementById('qrcode').innerHTML = `
-                <div style="text-align:center; padding:20px; color: #666;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
-                    <strong>请手动访问：</strong><br>
-                    <small style="font-size: 12px;">${url}</small>
-                    <br><br>
-                    <button onclick="generateQRCode()" style="padding: 8px 16px; background: #1a2a6c; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        重新生成二维码
-                    </button>
-                </div>
-            `;
-        }
-
-        function refreshQRCode() {
-            generateQRCode();
-            alert('二维码已刷新！');
         }
 
         function copyUrl() {
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
-                alert('链接已复制到剪贴板！\n\n' + url);
-            }).catch(err => {
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('链接已复制！');
+                alert('链接已复制到剪贴板！');
             });
         }
 
-        // 标签页切换
-        function openTab(tabName) {
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove('active');
-            }
-            
-            const tabButtons = document.getElementsByClassName('tab-button');
-            for (let i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].classList.remove('active');
-            }
-            
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-            
-            // 如果切换到词云标签，更新词云
-            if (tabName === 'wordcloud-tab') {
-                updateAllWordClouds();
-            }
-        }
-
-        // 表单处理
+        // 学生表单提交
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -471,14 +364,18 @@
             });
             localStorage.setItem('pythonFeedback', JSON.stringify(responses));
             
-            alert('感谢您的反馈！回答已提交。现在可以查看词云图了。');
-            clearForm();
+            // 显示成功消息和词云
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('wordcloudSection').style.display = 'block';
             
-            // 自动切换到词云标签页
-            openTab('wordcloud-tab');
+            // 更新词云
+            updateStudentWordClouds();
         });
 
-        function clearForm() {
+        // 显示表单再次提交
+        function showFormAgain() {
+            document.getElementById('feedbackForm').style.display = 'grid';
+            document.getElementById('wordcloudSection').style.display = 'none';
             document.getElementById('feedbackForm').reset();
         }
 
@@ -487,7 +384,6 @@
             if (texts.length === 0) return [];
             
             const allText = texts.join(' ').toLowerCase();
-            // 清理文本，只保留字母、数字和中文
             const words = allText.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, '')
                                 .split(/\s+/)
                                 .filter(word => word.length > 1);
@@ -505,36 +401,11 @@
             return wordList.sort((a, b) => b[1] - a[1]).slice(0, 30);
         }
 
-        // 更新所有词云
-        function updateAllWordClouds() {
+        // 更新学生词云
+        function updateStudentWordClouds() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
             
-            if (responses.length === 0) {
-                document.getElementById('wordcloudSection').innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
-                        <h3>暂无数据</h3>
-                        <p>还没有学生提交反馈，或者可以点击"添加示例数据"查看效果</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // 恢复词云容器
-            document.getElementById('wordcloudSection').innerHTML = `
-                <div class="wordcloud-container">
-                    <div class="wordcloud-title">遇到的函数</div>
-                    <canvas id="wordcloud1" class="wordcloud-canvas"></canvas>
-                </div>
-                <div class="wordcloud-container">
-                    <div class="wordcloud-title">函数功能</div>
-                    <canvas id="wordcloud2" class="wordcloud-canvas"></canvas>
-                </div>
-                <div class="wordcloud-container">
-                    <div class="wordcloud-title">实现方式</div>
-                    <canvas id="wordcloud3" class="wordcloud-canvas"></canvas>
-                </div>
-            `;
+            if (responses.length === 0) return;
             
             const q1Texts = responses.map(r => r.q1);
             const q2Texts = responses.map(r => r.q2);
@@ -549,11 +420,55 @@
             createWordCloud('wordcloud3', wcData3);
         }
 
-        // 创建单个词云
+        // 更新教师词云
+        function updateTeacherWordClouds() {
+            const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
+            const teacherSection = document.getElementById('teacherWordcloudSection');
+            
+            if (responses.length === 0) {
+                teacherSection.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>暂无学生反馈数据</h3>
+                        <p>可以点击"添加示例数据"查看词云效果</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            teacherSection.innerHTML = `
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">遇到的函数</div>
+                    <canvas id="teacherWordcloud1" class="wordcloud-canvas"></canvas>
+                </div>
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">函数功能</div>
+                    <canvas id="teacherWordcloud2" class="wordcloud-canvas"></canvas>
+                </div>
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">实现方式</div>
+                    <canvas id="teacherWordcloud3" class="wordcloud-canvas"></canvas>
+                </div>
+            `;
+            
+            const q1Texts = responses.map(r => r.q1);
+            const q2Texts = responses.map(r => r.q2);
+            const q3Texts = responses.map(r => r.q3);
+            
+            const wcData1 = generateWordCloudData(q1Texts);
+            const wcData2 = generateWordCloudData(q2Texts);
+            const wcData3 = generateWordCloudData(q3Texts);
+            
+            createWordCloud('teacherWordcloud1', wcData1);
+            createWordCloud('teacherWordcloud2', wcData2);
+            createWordCloud('teacherWordcloud3', wcData3);
+        }
+
+        // 创建词云
         function createWordCloud(canvasId, wordList) {
             const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
+            if (!canvas) return;
             
+            const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (wordList.length > 0) {
@@ -596,13 +511,6 @@
                     q2: "range()生成数字序列，type()查看数据类型，str()转换为字符串",
                     q3: "函数接收输入参数，处理数据，返回结果",
                     timestamp: new Date().toLocaleString()
-                },
-                {
-                    name: "王五",
-                    q1: "int(), float(), list()",
-                    q2: "int()转换为整数，float()转换为浮点数，list()创建列表",
-                    q3: "使用def关键字定义，可以接受参数并返回值",
-                    timestamp: new Date().toLocaleString()
                 }
             ];
             
@@ -611,7 +519,7 @@
             localStorage.setItem('pythonFeedback', JSON.stringify(responses));
             
             alert('已添加示例数据！');
-            updateAllWordClouds();
+            updateTeacherWordClouds();
         }
 
         // 清空所有数据
@@ -619,15 +527,15 @@
             if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
                 localStorage.removeItem('pythonFeedback');
                 alert('所有数据已清空。');
-                updateAllWordClouds();
+                updateTeacherWordClouds();
             }
         }
 
-        // 页面加载时初始化
+        // 页面加载
         document.addEventListener('DOMContentLoaded', function() {
-            generateQRCode();
-            // 显示词云区域
-            document.getElementById('wordcloudSection').style.display = 'grid';
+            // 默认显示学生视图
+            document.getElementById('studentView').style.display = 'block';
+            document.getElementById('teacherView').style.display = 'none';
         });
     </script>
 </body>
