@@ -137,10 +137,21 @@
         
         .wordcloud-canvas {
             width: 100%;
-            height: 250px;
+            height: 300px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background: white;
+        }
+        
+        /* 统计信息 */
+        .stats-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #1a2a6c;
         }
         
         /* 成功消息 */
@@ -169,6 +180,28 @@
             z-index: 1000;
         }
         
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1a2a6c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -176,6 +209,10 @@
             
             .student-card {
                 padding: 20px;
+            }
+            
+            .wordcloud-canvas {
+                height: 250px;
             }
         }
     </style>
@@ -226,19 +263,17 @@
                         <p>根据同学们的回答生成</p>
                     </div>
                     
-                    <div class="wordcloud-container">
-                        <div class="wordcloud-title">遇到的函数</div>
-                        <canvas id="wordcloud1" class="wordcloud-canvas"></canvas>
+                    <!-- 统计信息 -->
+                    <div class="stats-info" id="statsInfo">
+                        已收集 <span id="responseCount">0</span> 份反馈
                     </div>
                     
-                    <div class="wordcloud-container">
-                        <div class="wordcloud-title">函数功能</div>
-                        <canvas id="wordcloud2" class="wordcloud-canvas"></canvas>
-                    </div>
-                    
-                    <div class="wordcloud-container">
-                        <div class="wordcloud-title">实现方式</div>
-                        <canvas id="wordcloud3" class="wordcloud-canvas"></canvas>
+                    <!-- 词云容器 -->
+                    <div id="studentWordcloudContainer">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>正在生成词云...</p>
+                        </div>
                     </div>
                     
                     <button class="submit-btn" onclick="showFormAgain()" style="background: #6c757d; margin-top: 20px;">
@@ -274,6 +309,11 @@
                     <button onclick="clearAllData()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
                         清空数据
                     </button>
+                </div>
+                
+                <!-- 教师统计信息 -->
+                <div class="stats-info" id="teacherStatsInfo">
+                    已收集 <span id="teacherResponseCount">0</span> 份反馈（共36人）
                 </div>
                 
                 <div id="teacherWordcloudSection">
@@ -339,6 +379,20 @@
             });
         }
 
+        // 更新统计信息
+        function updateStats() {
+            const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
+            const count = responses.length;
+            
+            document.getElementById('responseCount').textContent = count;
+            document.getElementById('teacherResponseCount').textContent = count;
+            
+            // 更新进度显示
+            const progressPercent = Math.min(100, (count / 36) * 100);
+            document.getElementById('teacherStatsInfo').innerHTML = 
+                `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共36人） - ${progressPercent.toFixed(0)}%`;
+        }
+
         // 学生表单提交
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -368,7 +422,8 @@
             document.getElementById('feedbackForm').style.display = 'none';
             document.getElementById('wordcloudSection').style.display = 'block';
             
-            // 更新词云
+            // 更新统计和词云
+            updateStats();
             updateStudentWordClouds();
         });
 
@@ -383,10 +438,22 @@
         function generateWordCloudData(texts) {
             if (texts.length === 0) return [];
             
+            console.log('原始文本:', texts);
+            
             const allText = texts.join(' ').toLowerCase();
-            const words = allText.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s]/g, '')
+            
+            // 更好的文本清理
+            const words = allText.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\s()_,.]/g, ' ')
                                 .split(/\s+/)
+                                .filter(word => {
+                                    return word.length > 2 || 
+                                           (word.includes('(') && word.includes(')')) ||
+                                           (word.length === 3 && word.includes('()'));
+                                })
+                                .map(word => word.replace(/[(),]/g, '').trim())
                                 .filter(word => word.length > 1);
+            
+            console.log('清理后的词:', words);
             
             const wordFreq = {};
             words.forEach(word => {
@@ -395,35 +462,86 @@
             
             const wordList = [];
             for (const word in wordFreq) {
-                wordList.push([word, wordFreq[word]]);
+                let weight = wordFreq[word];
+                // 为小班级优化权重
+                if (weight > 5) weight = Math.sqrt(weight) * 2;
+                wordList.push([word, weight]);
             }
             
-            return wordList.sort((a, b) => b[1] - a[1]).slice(0, 30);
+            console.log('词频统计:', wordList);
+            
+            // 取前15个词
+            return wordList.sort((a, b) => b[1] - a[1]).slice(0, 15);
         }
 
-        // 更新学生词云
+        // 更新学生词云 - 修复版本
         function updateStudentWordClouds() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
+            const container = document.getElementById('studentWordcloudContainer');
             
-            if (responses.length === 0) return;
+            console.log('学生词云数据:', responses);
             
-            const q1Texts = responses.map(r => r.q1);
-            const q2Texts = responses.map(r => r.q2);
-            const q3Texts = responses.map(r => r.q3);
+            if (responses.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>暂无反馈数据</h3>
+                        <p>您是第一份提交，等待其他同学提交后即可看到词云</p>
+                    </div>
+                `;
+                return;
+            }
             
-            const wcData1 = generateWordCloudData(q1Texts);
-            const wcData2 = generateWordCloudData(q2Texts);
-            const wcData3 = generateWordCloudData(q3Texts);
+            // 先显示加载状态
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>正在生成词云...</p>
+                </div>
+            `;
             
-            createWordCloud('wordcloud1', wcData1);
-            createWordCloud('wordcloud2', wcData2);
-            createWordCloud('wordcloud3', wcData3);
+            // 延迟执行，确保DOM更新
+            setTimeout(() => {
+                const q1Texts = responses.map(r => r.q1);
+                const q2Texts = responses.map(r => r.q2);
+                const q3Texts = responses.map(r => r.q3);
+                
+                const wcData1 = generateWordCloudData(q1Texts);
+                const wcData2 = generateWordCloudData(q2Texts);
+                const wcData3 = generateWordCloudData(q3Texts);
+                
+                console.log('词云数据1:', wcData1);
+                console.log('词云数据2:', wcData2);
+                console.log('词云数据3:', wcData3);
+                
+                // 重新创建词云容器
+                container.innerHTML = `
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">遇到的函数</div>
+                        <canvas id="studentWordcloud1" class="wordcloud-canvas" width="350" height="300"></canvas>
+                    </div>
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">函数功能</div>
+                        <canvas id="studentWordcloud2" class="wordcloud-canvas" width="350" height="300"></canvas>
+                    </div>
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">实现方式</div>
+                        <canvas id="studentWordcloud3" class="wordcloud-canvas" width="350" height="300"></canvas>
+                    </div>
+                `;
+                
+                // 创建词云
+                createWordCloud('studentWordcloud1', wcData1);
+                createWordCloud('studentWordcloud2', wcData2);
+                createWordCloud('studentWordcloud3', wcData3);
+            }, 100);
         }
 
         // 更新教师词云
         function updateTeacherWordClouds() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
             const teacherSection = document.getElementById('teacherWordcloudSection');
+            
+            updateStats();
             
             if (responses.length === 0) {
                 teacherSection.innerHTML = `
@@ -438,15 +556,15 @@
             teacherSection.innerHTML = `
                 <div class="wordcloud-container">
                     <div class="wordcloud-title">遇到的函数</div>
-                    <canvas id="teacherWordcloud1" class="wordcloud-canvas"></canvas>
+                    <canvas id="teacherWordcloud1" class="wordcloud-canvas" width="350" height="300"></canvas>
                 </div>
                 <div class="wordcloud-container">
                     <div class="wordcloud-title">函数功能</div>
-                    <canvas id="teacherWordcloud2" class="wordcloud-canvas"></canvas>
+                    <canvas id="teacherWordcloud2" class="wordcloud-canvas" width="350" height="300"></canvas>
                 </div>
                 <div class="wordcloud-container">
                     <div class="wordcloud-title">实现方式</div>
-                    <canvas id="teacherWordcloud3" class="wordcloud-canvas"></canvas>
+                    <canvas id="teacherWordcloud3" class="wordcloud-canvas" width="350" height="300"></canvas>
                 </div>
             `;
             
@@ -466,27 +584,44 @@
         // 创建词云
         function createWordCloud(canvasId, wordList) {
             const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+            if (!canvas) {
+                console.error('Canvas not found:', canvasId);
+                return;
+            }
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (wordList.length > 0) {
-                WordCloud(canvas, {
-                    list: wordList,
-                    gridSize: Math.round(16 * canvas.width / 1024),
-                    weightFactor: function(size) {
-                        return Math.pow(size, 1.5) * canvas.width / 1024;
-                    },
-                    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-                    color: function() {
-                        const colors = ['#1a2a6c', '#b21f1f', '#fdbb2d', '#28a745', '#6f42c1', '#e83e8c'];
-                        return colors[Math.floor(Math.random() * colors.length)];
-                    },
-                    rotateRatio: 0.5,
-                    rotationSteps: 2,
-                    backgroundColor: '#ffffff'
-                });
+            console.log('创建词云:', canvasId, wordList);
+            
+            if (wordList && wordList.length > 0) {
+                try {
+                    WordCloud(canvas, {
+                        list: wordList,
+                        gridSize: 10,
+                        weightFactor: function(size) {
+                            return Math.pow(size, 1.2) * 15;
+                        },
+                        fontFamily: 'Arial, sans-serif',
+                        color: function() {
+                            const colors = ['#1a2a6c', '#b21f1f', '#fdbb2d', '#28a745', '#6f42c1'];
+                            return colors[Math.floor(Math.random() * colors.length)];
+                        },
+                        rotateRatio: 0.2,
+                        rotationSteps: 1,
+                        backgroundColor: '#ffffff',
+                        minSize: 8,
+                        drawOutOfBound: false,
+                        shrinkToFit: true
+                    });
+                    console.log('词云生成成功:', canvasId);
+                } catch (error) {
+                    console.error('词云生成错误:', error);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('生成失败', canvas.width / 2, canvas.height / 2);
+                }
             } else {
                 ctx.fillStyle = '#666';
                 ctx.font = '16px Arial';
@@ -501,15 +636,22 @@
                 {
                     name: "张三",
                     q1: "print(), len(), input()",
-                    q2: "print()用于输出信息，len()用于获取长度，input()用于接收用户输入",
-                    q3: "通过函数名和参数调用，执行预定义的操作",
+                    q2: "print()用于输出信息到屏幕，len()用于获取对象长度，input()用于接收用户输入",
+                    q3: "通过函数名加括号调用，可以传递参数，函数执行后返回结果",
                     timestamp: new Date().toLocaleString()
                 },
                 {
-                    name: "李四",
+                    name: "李四", 
                     q1: "range(), type(), str()",
-                    q2: "range()生成数字序列，type()查看数据类型，str()转换为字符串",
-                    q3: "函数接收输入参数，处理数据，返回结果",
+                    q2: "range()生成数字序列，type()查看数据类型，str()将数据转换为字符串",
+                    q3: "使用函数名称和参数列表来调用，函数内部执行特定任务",
+                    timestamp: new Date().toLocaleString()
+                },
+                {
+                    name: "王五",
+                    q1: "int(), float(), list()",
+                    q2: "int()转换为整数，float()转换为浮点数，list()创建列表对象",
+                    q3: "函数接收输入参数，处理数据，然后返回处理结果",
                     timestamp: new Date().toLocaleString()
                 }
             ];
@@ -518,8 +660,11 @@
             responses = responses.concat(sampleData);
             localStorage.setItem('pythonFeedback', JSON.stringify(responses));
             
-            alert('已添加示例数据！');
-            updateTeacherWordClouds();
+            alert('已添加示例数据！现在可以看到词云效果了。');
+            updateStats();
+            if (document.getElementById('teacherView').style.display === 'block') {
+                updateTeacherWordClouds();
+            }
         }
 
         // 清空所有数据
@@ -527,6 +672,7 @@
             if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
                 localStorage.removeItem('pythonFeedback');
                 alert('所有数据已清空。');
+                updateStats();
                 updateTeacherWordClouds();
             }
         }
@@ -536,6 +682,23 @@
             // 默认显示学生视图
             document.getElementById('studentView').style.display = 'block';
             document.getElementById('teacherView').style.display = 'none';
+            updateStats();
+            
+            // 初始化学生词云容器
+            document.getElementById('studentWordcloudContainer').innerHTML = `
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">遇到的函数</div>
+                    <canvas id="studentWordcloud1" class="wordcloud-canvas" width="350" height="300"></canvas>
+                </div>
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">函数功能</div>
+                    <canvas id="studentWordcloud2" class="wordcloud-canvas" width="350" height="300"></canvas>
+                </div>
+                <div class="wordcloud-container">
+                    <div class="wordcloud-title">实现方式</div>
+                    <canvas id="studentWordcloud3" class="wordcloud-canvas" width="350" height="300"></canvas>
+                </div>
+            `;
         });
     </script>
 </body>
