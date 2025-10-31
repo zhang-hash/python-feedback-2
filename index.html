@@ -4,118 +4,370 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python函数学习反馈收集</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- 使用可靠的二维码库 -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); padding: 20px; min-height: 100vh; }
-        .container { max-width: 800px; margin: 0 auto; }
-        header { text-align: center; color: white; margin-bottom: 30px; }
-        h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .card { background: white; border-radius: 10px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .qrcode-section { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
-        #qrcode { width: 200px; height: 200px; display: inline-block; margin: 15px 0; }
-        .share-link { background: #e9ecef; padding: 10px; border-radius: 5px; margin: 10px 0; word-break: break-all; }
-        button { padding: 10px 20px; background: #1a2a6c; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #1a2a6c; }
-        input, textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; }
-        textarea { min-height: 80px; resize: vertical; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #28a745;
+        }
+        
+        .qrcode-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .qrcode-container {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 15px 0;
+        }
+        
+        #qrcode {
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+            border: 1px solid #ddd;
+        }
+        
+        .share-link {
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px dashed #1a2a6c;
+        }
+        
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #1a2a6c;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #b21f1f, #fdbb2d);
+            transform: scale(1.05);
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            #qrcode {
+                width: 150px;
+                height: 150px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Python函数学习反馈收集</h1>
-            <p>扫描二维码参与反馈</p>
+            <p class="subtitle">扫描二维码参与反馈，生成可视化词云</p>
         </header>
         
         <div class="card">
+            <div class="success-message">
+                <h3>✅ GitHub Pages部署成功</h3>
+                <p>现在可以通过二维码或链接分享给学生了！</p>
+            </div>
+            
+            <!-- 二维码区域 -->
             <div class="qrcode-section">
                 <h2>📱 手机扫描二维码参与</h2>
-                <div id="qrcode"></div>
-                <p>使用手机扫描二维码参与反馈</p>
+                <div class="qrcode-container">
+                    <div id="qrcode"></div>
+                </div>
+                <p>使用微信、支付宝或手机相机扫描二维码</p>
+                
                 <div class="share-link">
                     <strong>访问链接：</strong><br>
-                    <span id="pageUrl">加载中...</span>
+                    <span id="pageUrl">https://zhang-hash.github.io/python-feedback-2/</span>
+                    <button onclick="copyUrl()" style="margin-left: 10px;">复制链接</button>
+                    <button onclick="refreshQRCode()" style="margin-left: 5px;">刷新二维码</button>
                 </div>
-                <button onclick="copyUrl()">复制链接</button>
+            </div>
+            
+            <div class="instructions">
+                <h3>使用说明</h3>
+                <ul>
+                    <li>使用手机扫描上方二维码，或点击上方链接</li>
+                    <li>回答三个关于Python函数的问题</li>
+                    <li>您的回答将用于生成词云，展示全班学习情况</li>
+                    <li>回答提交后，可以查看实时生成的词云图</li>
+                </ul>
             </div>
 
+            <!-- 反馈表单 -->
             <div>
-                <h2>反馈问题</h2>
-                <form id="feedbackForm">
+                <h2>反馈表单</h2>
+                <form id="feedbackForm" class="form-section">
                     <div class="form-group">
-                        <label>您的姓名（可选）:</label>
+                        <label for="studentName">您的姓名（可选）:</label>
                         <input type="text" id="studentName" placeholder="输入您的姓名">
                     </div>
+                    
                     <div class="form-group">
-                        <label>问题一：在前面的学习中，我们遇到了哪些函数？说出三个即可。</label>
+                        <label for="question1">问题一：在前面的学习中，我们遇到了哪些函数？说出三个即可。</label>
                         <textarea id="question1" placeholder="例如：print(), len(), input()..." required></textarea>
                     </div>
+                    
                     <div class="form-group">
-                        <label>问题二：他们的功能分别是什么？</label>
+                        <label for="question2">问题二：他们的功能分别是什么？</label>
                         <textarea id="question2" placeholder="例如：print()用于输出信息，len()用于获取长度..." required></textarea>
                     </div>
+                    
                     <div class="form-group">
-                        <label>问题三：函数功能是如何实现的？</label>
+                        <label for="question3">问题三：函数功能是如何实现的？</label>
                         <textarea id="question3" placeholder="例如：通过函数名和参数调用，执行预定义的操作..." required></textarea>
                     </div>
+                    
                     <button type="submit">提交反馈</button>
+                    <button type="button" onclick="clearForm()">清空表单</button>
                 </form>
             </div>
         </div>
     </div>
 
     <script>
-        // 生成二维码
+        // 生成二维码函数 - 使用qrcode-generator库
         function generateQRCode() {
             const currentUrl = window.location.href;
+            console.log('当前URL:', currentUrl);
             document.getElementById('pageUrl').textContent = currentUrl;
             
             try {
-                // 清空并重新生成二维码
-                document.getElementById('qrcode').innerHTML = '';
-                new QRCode(document.getElementById('qrcode'), {
-                    text: currentUrl,
-                    width: 200,
-                    height: 200,
-                    colorDark: "#1a2a6c",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
+                // 使用qrcode-generator库
+                const typeNumber = 4; // 二维码类型
+                const errorCorrectionLevel = 'L'; // 纠错级别
+                const qr = qrcode(typeNumber, errorCorrectionLevel);
+                qr.addData(currentUrl);
+                qr.make();
+                
+                // 创建二维码图片
+                const qrImage = qr.createImgTag(4, 0); // 4倍大小，无边框
+                document.getElementById('qrcode').innerHTML = qrImage;
+                
                 console.log('二维码生成成功！');
+                
             } catch (error) {
                 console.error('二维码生成失败:', error);
-                document.getElementById('qrcode').innerHTML = `
-                    <div style="text-align:center; padding:20px; color: #666;">
-                        <div style="font-size: 48px;">📱</div>
-                        <strong>请访问：</strong><br>
-                        <small>${currentUrl}</small>
-                    </div>
-                `;
+                showQRCodeFallback(currentUrl);
             }
+        }
+
+        // 备用方案：显示链接
+        function showQRCodeFallback(url) {
+            document.getElementById('qrcode').innerHTML = `
+                <div style="text-align:center; padding:20px; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
+                    <strong>请手动访问：</strong><br>
+                    <small style="font-size: 12px;">${url}</small>
+                    <br><br>
+                    <button onclick="generateQRCode()" style="padding: 8px 16px; background: #1a2a6c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        重新生成二维码
+                    </button>
+                </div>
+            `;
+        }
+
+        // 刷新二维码
+        function refreshQRCode() {
+            generateQRCode();
+            alert('二维码已刷新！');
         }
 
         // 复制链接
         function copyUrl() {
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
-                alert('链接已复制到剪贴板！');
+                alert('链接已复制到剪贴板！\n\n' + url);
+            }).catch(err => {
+                // 备用复制方法
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('链接已复制！');
             });
         }
 
-        // 表单提交
+        // 表单处理
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            const name = document.getElementById('studentName').value || '匿名';
+            const q1 = document.getElementById('question1').value;
+            const q2 = document.getElementById('question2').value;
+            const q3 = document.getElementById('question3').value;
+            
+            if (!q1 || !q2 || !q3) {
+                alert('请填写所有问题！');
+                return;
+            }
+            
+            // 存储到本地
+            let responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
+            responses.push({
+                name: name,
+                q1: q1,
+                q2: q2,
+                q3: q3,
+                timestamp: new Date().toLocaleString()
+            });
+            localStorage.setItem('pythonFeedback', JSON.stringify(responses));
+            
             alert('感谢您的反馈！回答已提交。');
-            this.reset();
+            clearForm();
         });
+
+        function clearForm() {
+            document.getElementById('feedbackForm').reset();
+        }
 
         // 页面加载时生成二维码
         document.addEventListener('DOMContentLoaded', function() {
             console.log('页面加载完成，开始生成二维码...');
-            generateQRCode();
+            
+            // 检查库是否加载成功
+            if (typeof qrcode === 'undefined') {
+                console.error('qrcode库未加载');
+                showQRCodeFallback(window.location.href);
+            } else {
+                generateQRCode();
+            }
+        });
+
+        // 如果库加载失败，提供备用方案
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (document.getElementById('qrcode').innerHTML === '') {
+                    console.log('二维码生成超时，使用备用方案');
+                    showQRCodeFallback(window.location.href);
+                }
+            }, 3000);
         });
     </script>
 </body>
