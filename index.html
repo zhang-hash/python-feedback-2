@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python函数学习反馈收集</title>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode.js@0.0.1/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #fdbb2d;
+            padding-bottom: 10px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #28a745;
+        }
+        
+        .qrcode-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .qrcode-container {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 15px 0;
+        }
+        
+        #qrcode {
+            width: 200px;
+            height: 200px;
+            display: inline-block;
+        }
+        
+        .share-link {
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px dashed #1a2a6c;
+        }
+        
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #1a2a6c;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #b21f1f, #fdbb2d);
+            transform: scale(1.05);
+        }
+        
+        .wordcloud-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .wordcloud-container {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .wordcloud-title {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .wordcloud-canvas {
+            width: 100%;
+            height: 250px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        
+        .data-section {
+            margin-top: 30px;
+        }
+        
+        .responses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .responses-table th, .responses-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .responses-table th {
+            background-color: #1a2a6c;
+            color: white;
+        }
+        
+        .responses-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .responses-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: #f1f1f1;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .tab-button.active {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .export-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .teacher-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #ffc107;
+        }
+        
+        @media (max-width: 768px) {
+            .wordcloud-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                margin-bottom: 5px;
+                border-radius: 5px;
+            }
+            
+            #qrcode {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Python函数学习反馈收集</h1>
+            <p class="subtitle">扫描二维码参与反馈，生成可视化词云</p>
+        </header>
+        
+        <div class="card">
+            <div class="success-message">
+                <h3>✅ 已部署到GitHub Pages</h3>
+                <p>现在可以通过二维码或链接分享给学生了！</p>
+            </div>
+            
+            <!-- 二维码区域 -->
+            <div class="qrcode-section">
+                <h2>📱 手机扫描二维码参与</h2>
+                <div class="qrcode-container">
+                    <div id="qrcode"></div>
+                </div>
+                <p class="qrcode-instructions">使用微信、支付宝或手机相机扫描二维码</p>
+                
+                <div class="share-link">
+                    <strong>访问链接：</strong><br>
+                    <span id="pageUrl">https://你的用户名.github.io/python-feedback/</span>
+                    <button onclick="copyUrl()" style="margin-left: 10px;">复制链接</button>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>使用说明</h3>
+                <ul>
+                    <li>使用手机扫描上方二维码，或点击上方链接</li>
+                    <li>回答三个关于Python函数的问题</li>
+                    <li>您的回答将用于生成词云，展示全班学习情况</li>
+                    <li>回答提交后，可以查看实时生成的词云图</li>
+                </ul>
+            </div>
+            
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="openTab('form-tab')">填写反馈</button>
+                <button class="tab-button" onclick="openTab('wordcloud-tab')">查看词云</button>
+                <button class="tab-button" onclick="openTab('data-tab')">查看数据</button>
+                <button class="tab-button" onclick="openTab('teacher-tab')">教师功能</button>
+            </div>
+            
+            <div id="form-tab" class="tab-content active">
+                <h2>反馈表单</h2>
+                <form id="feedbackForm" class="form-section">
+                    <div class="form-group">
+                        <label for="studentName">您的姓名（可选）:</label>
+                        <input type="text" id="studentName" placeholder="输入您的姓名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question1">问题一：在前面的学习中，我们遇到了哪些函数？说出三个即可。</label>
+                        <textarea id="question1" placeholder="例如：print(), len(), input()..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question2">问题二：他们的功能分别是什么？</label>
+                        <textarea id="question2" placeholder="例如：print()用于输出信息，len()用于获取长度..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="question3">问题三：函数功能是如何实现的？</label>
+                        <textarea id="question3" placeholder="例如：通过函数名和参数调用，执行预定义的操作..." required></textarea>
+                    </div>
+                    
+                    <button type="submit">提交反馈</button>
+                    <button type="button" onclick="clearForm()">清空表单</button>
+                </form>
+            </div>
+            
+            <div id="wordcloud-tab" class="tab-content">
+                <h2>词云展示</h2>
+                <p>以下是根据所有学生回答生成的词云图：</p>
+                
+                <div class="wordcloud-section">
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">遇到的函数</div>
+                        <canvas id="wordcloud1" class="wordcloud-canvas"></canvas>
+                    </div>
+                    
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">函数功能</div>
+                        <canvas id="wordcloud2" class="wordcloud-canvas"></canvas>
+                    </div>
+                    
+                    <div class="wordcloud-container">
+                        <div class="wordcloud-title">实现方式</div>
+                        <canvas id="wordcloud3" class="wordcloud-canvas"></canvas>
+                    </div>
+                </div>
+                
+                <div class="export-buttons">
+                    <button onclick="updateAllWordClouds()">刷新词云</button>
+                    <button onclick="exportWordClouds()">导出词云图片</button>
+                </div>
+            </div>
+            
+            <div id="data-tab" class="tab-content">
+                <h2>回答数据</h2>
+                <p>以下是所有学生的回答记录：</p>
+                
+                <div class="data-section">
+                    <table class="responses-table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>遇到的函数</th>
+                                <th>函数功能</th>
+                                <th>实现方式</th>
+                                <th>提交时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responsesTableBody">
+                            <!-- 数据将通过JavaScript动态添加 -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="export-buttons">
+                        <button onclick="exportData()">导出数据为CSV</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="teacher-tab" class="tab-content">
+                <div class="teacher-section">
+                    <h2>教师管理功能</h2>
+                    <p>这些功能仅供教师使用：</p>
+                    
+                    <div class="export-buttons">
+                        <button onclick="exportData()">导出所有数据(CSV)</button>
+                        <button onclick="exportWordClouds()">导出词云图片</button>
+                        <button onclick="clearAllData()" style="background: #dc3545;">清空所有数据</button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h3>课堂使用建议：</h3>
+                        <ul>
+                            <li>课前将二维码投影在屏幕上</li>
+                            <li>给学生5分钟时间扫描并填写反馈</li>
+                            <li>实时查看词云了解学生掌握情况</li>
+                            <li>根据反馈调整教学内容</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化存储
+        let responses = JSON.parse(localStorage.getItem('pythonFunctionResponses')) || [];
+        
+        // 示例数据
+        const sampleData = [
+            {
+                name: "张三",
+                q1: "print(), len(), input()",
+                q2: "print()用于输出信息，len()用于获取长度，input()用于接收用户输入",
+                q3: "通过函数名和参数调用，执行预定义的操作",
+                timestamp: new Date().toLocaleString()
+            },
+            {
+                name: "李四",
+                q1: "range(), type(), str()",
+                q2: "range()生成数字序列，type()查看数据类型，str()转换为字符串",
+                q3: "函数接收输入参数，处理数据，返回结果",
+                timestamp: new Date().toLocaleString()
+            }
+        ];
+        
+        // 如果没有数据，添加示例数据
+        if (responses.length === 0) {
+            responses = sampleData;
+            localStorage.setItem('pythonFunctionResponses', JSON.stringify(responses));
+        }
+        
+        // 生成二维码
+        function generateQRCode() {
+            const currentUrl = window.location.href;
+            document.getElementById('pageUrl').textContent = currentUrl;
+            
+            try {
+                document.getElementById('qrcode').innerHTML = '';
+                new QRCode(document.getElementById('qrcode'), {
+                    text: currentUrl,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#1a2a6c",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                document.getElementById('qrcode').innerHTML = `
+                    <div style="text-align:center; padding:20px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
+                        <strong>请访问：</strong><br>
+                        <small>${currentUrl}</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // 复制链接
+        function copyUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('链接已复制到剪贴板！');
+            });
+        }
+        
+        // 表单提交处理
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('studentName').value || '匿名';
+            const q1 = document.getElementById('question1').value;
+            const q2 = document.getElementById('question2').value;
+            const q3 = document.getElementById('question3').value;
+            
+            const response = {
+                name: name,
+                q1: q1,
+                q2: q2,
+                q3: q3,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            responses.push(response);
+            localStorage.setItem('pythonFunctionResponses', JSON.stringify(responses));
+            
+            alert('感谢您的反馈！回答已提交。');
+            clearForm();
+            updateDataTable();
+            updateAllWordClouds();
+        });
+        
+        // 清空表单
+        function clearForm() {
+            document.getElementById('feedbackForm').reset();
+        }
+        
+        // 更新数据表格
+        function updateDataTable() {
+            const tableBody = document.getElementById('responsesTableBody');
+            tableBody.innerHTML = '';
+            
+            responses.forEach(response => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${response.name}</td>
+                    <td>${response.q1}</td>
+                    <td>${response.q2}</td>
+                    <td>${response.q3}</td>
+                    <td>${response.timestamp}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // 标签页切换
+        function openTab(tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            if (tabName === 'data-tab') {
+                updateDataTable();
+            } else if (tabName === 'wordcloud-tab') {
+                updateAllWordClouds();
+            }
+        }
+        
+        // 生成词云数据
+        function generateWordCloudData(texts) {
+            const allText = texts.join(' ').toLowerCase();
+            const words = allText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+                                .split(/\s+/)
+                                .filter(word => word.length > 1);
+            
+            const wordFreq = {};
+            words.forEach(word => {
+                wordFreq[word] = (wordFreq[word] || 0) + 1;
+            });
+            
+            const wordList = [];
+            for (const word in wordFreq) {
+                wordList.push([word, wordFreq[word]]);
+            }
+            
+            return wordList.sort((a, b) => b[1] - a[1]).slice(0, 50);
+        }
+        
+        // 更新所有词云
+        function updateAllWordClouds() {
+            const q1Texts = responses.map(r => r.q1);
+            const q2Texts = responses.map(r => r.q2);
+            const q3Texts = responses.map(r => r.q3);
+            
+            const wcData1 = generateWordCloudData(q1Texts);
+            const wcData2 = generateWordCloudData(q2Texts);
+            const wcData3 = generateWordCloudData(q3Texts);
+            
+            createWordCloud('wordcloud1', wcData1);
+            createWordCloud('wordcloud2', wcData2);
+            createWordCloud('wordcloud3', wcData3);
+        }
+        
+        // 创建单个词云
+        function createWordCloud(canvasId, wordList) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (wordList.length > 0) {
+                WordCloud(canvas, {
+                    list: wordList,
+                    gridSize: Math.round(16 * canvas.width / 1024),
+                    weightFactor: function(size) {
+                        return Math.pow(size, 1.5) * canvas.width / 1024;
+                    },
+                    fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+                    color: function() {
+                        const colors = ['#1a2a6c', '#b21f1f', '#fdbb2d', '#28a745', '#6f42c1', '#e83e8c'];
+                        return colors[Math.floor(Math.random() * colors.length)];
+                    },
+                    rotateRatio: 0.5,
+                    rotationSteps: 2,
+                    backgroundColor: '#ffffff'
+                });
+            } else {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+            }
+        }
+        
+        // 导出数据为CSV
+        function exportData() {
+            let csvContent = "姓名,遇到的函数,函数功能,实现方式,提交时间\n";
+            
+            responses.forEach(response => {
+                const row = [
+                    response.name,
+                    `"${response.q1}"`,
+                    `"${response.q2}"`,
+                    `"${response.q3}"`,
+                    response.timestamp
+                ];
+                csvContent += row.join(',') + '\n';
+            };
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'python函数学习反馈.csv';
+            link.click();
+        }
+        
+        // 导出词云图片
+        function exportWordClouds() {
+            const canvases = ['wordcloud1', 'wordcloud2', 'wordcloud3'];
+            const titles = ['遇到的函数', '函数功能', '实现方式'];
+            
+            canvases.forEach((canvasId, index) => {
+                const canvas = document.getElementById(canvasId);
+                const link = document.createElement('a');
+                link.download = `python函数词云-${titles[index]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        
+        // 清空所有数据
+        function clearAllData() {
+            if (confirm('确定要清空所有数据吗？此操作不可撤销。')) {
+                responses = [];
+                localStorage.setItem('pythonFunctionResponses', JSON.stringify(responses));
+                updateDataTable();
+                updateAllWordClouds();
+                alert('所有数据已清空。');
+            }
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            generateQRCode();
+            updateDataTable();
+            updateAllWordClouds();
+        });
+    </script>
+</body>
+</html>
