@@ -264,8 +264,8 @@
                     </div>
                     
                     <!-- 统计信息 -->
-                    <div class="stats-info" id="statsInfo">
-                        已收集 <span id="responseCount">0</span> 份反馈
+                    <div class="stats-info" id="studentStatsInfo">
+                        已收集 <span id="studentResponseCount">0</span> 份反馈
                     </div>
                     
                     <!-- 词云容器 -->
@@ -379,18 +379,30 @@
             });
         }
 
-        // 更新统计信息
+        // 更新统计信息 - 修复版本
         function updateStats() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
             const count = responses.length;
             
-            document.getElementById('responseCount').textContent = count;
-            document.getElementById('teacherResponseCount').textContent = count;
+            // 安全地更新学生统计
+            const studentCountElement = document.getElementById('studentResponseCount');
+            if (studentCountElement) {
+                studentCountElement.textContent = count;
+            }
+            
+            // 安全地更新教师统计
+            const teacherCountElement = document.getElementById('teacherResponseCount');
+            if (teacherCountElement) {
+                teacherCountElement.textContent = count;
+            }
             
             // 更新进度显示
-            const progressPercent = Math.min(100, (count / 36) * 100);
-            document.getElementById('teacherStatsInfo').innerHTML = 
-                `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共36人） - ${progressPercent.toFixed(0)}%`;
+            const teacherStatsElement = document.getElementById('teacherStatsInfo');
+            if (teacherStatsElement) {
+                const progressPercent = Math.min(100, (count / 36) * 100);
+                teacherStatsElement.innerHTML = 
+                    `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共36人） - ${progressPercent.toFixed(0)}%`;
+            }
         }
 
         // 学生表单提交
@@ -438,8 +450,6 @@
         function generateWordCloudData(texts) {
             if (texts.length === 0) return [];
             
-            console.log('原始文本:', texts);
-            
             const allText = texts.join(' ').toLowerCase();
             
             // 更好的文本清理
@@ -452,8 +462,6 @@
                                 })
                                 .map(word => word.replace(/[(),]/g, '').trim())
                                 .filter(word => word.length > 1);
-            
-            console.log('清理后的词:', words);
             
             const wordFreq = {};
             words.forEach(word => {
@@ -468,18 +476,14 @@
                 wordList.push([word, weight]);
             }
             
-            console.log('词频统计:', wordList);
-            
             // 取前15个词
             return wordList.sort((a, b) => b[1] - a[1]).slice(0, 15);
         }
 
-        // 更新学生词云 - 修复版本
+        // 更新学生词云
         function updateStudentWordClouds() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
             const container = document.getElementById('studentWordcloudContainer');
-            
-            console.log('学生词云数据:', responses);
             
             if (responses.length === 0) {
                 container.innerHTML = `
@@ -508,10 +512,6 @@
                 const wcData1 = generateWordCloudData(q1Texts);
                 const wcData2 = generateWordCloudData(q2Texts);
                 const wcData3 = generateWordCloudData(q3Texts);
-                
-                console.log('词云数据1:', wcData1);
-                console.log('词云数据2:', wcData2);
-                console.log('词云数据3:', wcData3);
                 
                 // 重新创建词云容器
                 container.innerHTML = `
@@ -585,14 +585,11 @@
         function createWordCloud(canvasId, wordList) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) {
-                console.error('Canvas not found:', canvasId);
                 return;
             }
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            console.log('创建词云:', canvasId, wordList);
             
             if (wordList && wordList.length > 0) {
                 try {
@@ -614,9 +611,7 @@
                         drawOutOfBound: false,
                         shrinkToFit: true
                     });
-                    console.log('词云生成成功:', canvasId);
                 } catch (error) {
-                    console.error('词云生成错误:', error);
                     ctx.fillStyle = '#666';
                     ctx.font = '16px Arial';
                     ctx.textAlign = 'center';
