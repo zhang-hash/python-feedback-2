@@ -154,6 +154,23 @@
             color: #1a2a6c;
         }
         
+        /* 进度条 */
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #28a745, #20c997);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
         /* 成功消息 */
         .success-message {
             background: #d4edda;
@@ -265,7 +282,12 @@
                     
                     <!-- 统计信息 -->
                     <div class="stats-info" id="studentStatsInfo">
-                        已收集 <span id="studentResponseCount">0</span> 份反馈
+                        已收集 <span id="studentResponseCount">0</span> 份反馈（共40人）
+                    </div>
+                    
+                    <!-- 进度条 -->
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="studentProgressBar" style="width: 0%"></div>
                     </div>
                     
                     <!-- 词云容器 -->
@@ -313,7 +335,12 @@
                 
                 <!-- 教师统计信息 -->
                 <div class="stats-info" id="teacherStatsInfo">
-                    已收集 <span id="teacherResponseCount">0</span> 份反馈（共36人）
+                    已收集 <span id="teacherResponseCount">0</span> 份反馈（共40人）
+                </div>
+                
+                <!-- 教师进度条 -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="teacherProgressBar" style="width: 0%"></div>
                 </div>
                 
                 <div id="teacherWordcloudSection">
@@ -324,6 +351,9 @@
     </div>
 
     <script>
+        // 班级总人数
+        const TOTAL_STUDENTS = 40;
+
         // 视图切换
         function toggleTeacherView() {
             const studentView = document.getElementById('studentView');
@@ -379,10 +409,11 @@
             });
         }
 
-        // 更新统计信息 - 修复版本
+        // 更新统计信息
         function updateStats() {
             const responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
             const count = responses.length;
+            const progressPercent = Math.min(100, (count / TOTAL_STUDENTS) * 100);
             
             // 安全地更新学生统计
             const studentCountElement = document.getElementById('studentResponseCount');
@@ -396,12 +427,24 @@
                 teacherCountElement.textContent = count;
             }
             
+            // 更新进度条
+            const studentProgressBar = document.getElementById('studentProgressBar');
+            const teacherProgressBar = document.getElementById('teacherProgressBar');
+            if (studentProgressBar) studentProgressBar.style.width = progressPercent + '%';
+            if (teacherProgressBar) teacherProgressBar.style.width = progressPercent + '%';
+            
             // 更新进度显示
+            const studentStatsElement = document.getElementById('studentStatsInfo');
             const teacherStatsElement = document.getElementById('teacherStatsInfo');
+            
+            if (studentStatsElement) {
+                studentStatsElement.innerHTML = 
+                    `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共${TOTAL_STUDENTS}人） - ${progressPercent.toFixed(0)}%`;
+            }
+            
             if (teacherStatsElement) {
-                const progressPercent = Math.min(100, (count / 36) * 100);
                 teacherStatsElement.innerHTML = 
-                    `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共36人） - ${progressPercent.toFixed(0)}%`;
+                    `已收集 <span style="color: #b21f1f; font-size: 1.2em;">${count}</span> 份反馈（共${TOTAL_STUDENTS}人） - ${progressPercent.toFixed(0)}%`;
             }
         }
 
@@ -471,8 +514,8 @@
             const wordList = [];
             for (const word in wordFreq) {
                 let weight = wordFreq[word];
-                // 为小班级优化权重
-                if (weight > 5) weight = Math.sqrt(weight) * 2;
+                // 为40人班级优化权重
+                if (weight > 8) weight = Math.sqrt(weight) * 2.5;
                 wordList.push([word, weight]);
             }
             
@@ -625,37 +668,54 @@
             }
         }
 
-        // 添加示例数据
+        // 添加示例数据（40人班级）
         function addSampleData() {
-            const sampleData = [
-                {
-                    name: "张三",
-                    q1: "print(), len(), input()",
-                    q2: "print()用于输出信息到屏幕，len()用于获取对象长度，input()用于接收用户输入",
-                    q3: "通过函数名加括号调用，可以传递参数，函数执行后返回结果",
-                    timestamp: new Date().toLocaleString()
-                },
-                {
-                    name: "李四", 
-                    q1: "range(), type(), str()",
-                    q2: "range()生成数字序列，type()查看数据类型，str()将数据转换为字符串",
-                    q3: "使用函数名称和参数列表来调用，函数内部执行特定任务",
-                    timestamp: new Date().toLocaleString()
-                },
-                {
-                    name: "王五",
-                    q1: "int(), float(), list()",
-                    q2: "int()转换为整数，float()转换为浮点数，list()创建列表对象",
-                    q3: "函数接收输入参数，处理数据，然后返回处理结果",
-                    timestamp: new Date().toLocaleString()
-                }
+            const sampleFunctions = [
+                "print()", "len()", "input()", "range()", "type()", "str()", 
+                "int()", "float()", "list()", "dict()", "set()", "tuple()",
+                "max()", "min()", "sum()", "sorted()", "abs()", "round()",
+                "open()", "format()", "zip()", "enumerate()"
             ];
             
-            let responses = JSON.parse(localStorage.getItem('pythonFeedback')) || [];
-            responses = responses.concat(sampleData);
-            localStorage.setItem('pythonFeedback', JSON.stringify(responses));
+            const sampleFunctionsChinese = [
+                "打印", "长度", "输入", "范围", "类型", "字符串",
+                "整数", "浮点数", "列表", "字典", "集合", "元组",
+                "最大值", "最小值", "求和", "排序", "绝对值", "四舍五入",
+                "打开文件", "格式化", "压缩", "枚举"
+            ];
             
-            alert('已添加示例数据！现在可以看到词云效果了。');
+            const sampleData = [];
+            
+            // 生成40个样本数据
+            for (let i = 1; i <= 40; i++) {
+                // 随机选择3个函数
+                const selectedFuncs = [];
+                const selectedChinese = [];
+                const usedIndices = new Set();
+                
+                for (let j = 0; j < 3; j++) {
+                    let randomIndex;
+                    do {
+                        randomIndex = Math.floor(Math.random() * sampleFunctions.length);
+                    } while (usedIndices.has(randomIndex));
+                    
+                    usedIndices.add(randomIndex);
+                    selectedFuncs.push(sampleFunctions[randomIndex]);
+                    selectedChinese.push(sampleFunctionsChinese[randomIndex]);
+                }
+                
+                sampleData.push({
+                    name: `学生${i}`,
+                    q1: selectedFuncs.join(', '),
+                    q2: `${selectedFuncs[0]}用于${selectedChinese[0]}, ${selectedFuncs[1]}用于${selectedChinese[1]}, ${selectedFuncs[2]}用于${selectedChinese[2]}`,
+                    q3: "通过函数名和参数调用，执行预定义的操作，返回结果",
+                    timestamp: new Date().toLocaleString()
+                });
+            }
+            
+            localStorage.setItem('pythonFeedback', JSON.stringify(sampleData));
+            
+            alert('已添加40个示例数据！现在可以看到完整的词云效果。');
             updateStats();
             if (document.getElementById('teacherView').style.display === 'block') {
                 updateTeacherWordClouds();
